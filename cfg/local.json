@@ -1,0 +1,6 @@
+{
+  "type": "sql",
+  "uri": "sqlite:///data/catalog.db",
+  "warehouse": "file://data",
+  "signals": { "type": "local", "path": "data/ECG/signals.icechunk" }
+}

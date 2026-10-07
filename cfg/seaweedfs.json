@@ -1,0 +1,13 @@
+{
+  "type": "rest",
+  "uri": "http://127.0.0.1:8181",
+  "warehouse": "ecg-tables",
+  "s3.endpoint": "http://127.0.0.1:8333",
+  "signals": {
+    "type": "s3",
+    "bucket": "ecg-warehouse-signals",
+    "prefix": "ECG/signals.icechunk",
+    "region": "us-east-1",
+    "endpoint_url": "http://127.0.0.1:8333"
+  }
+}

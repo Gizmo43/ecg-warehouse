@@ -1,0 +1,17 @@
+{
+    "name": "afib_binary",
+    "description": "",
+    "sources": ["ptb-xl-1.0.3"],
+    "num_leads": 12,
+    "sampling_rate_hz": 500,
+    "code_systems": ["SCP-ECG"],
+    "codes": ["NORM", "AFIB"],
+    "require_diagnosis": false,
+    "signals_format": "icechunk",
+    "min_duration_sec": 10,
+    "max_duration_sec": 10,
+    "recording_columns": ["recording_id", "source", "patient_id", "sampling_rate_hz",
+                          "duration_sec", "age_at_recording", "sex"],
+    "diagnosis_columns": ["diagnosis_id", "recording_id", "code", "code_system", "label_text"],
+    "split": {"test_fraction": 0.2, "seed": 0}
+}

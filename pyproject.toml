@@ -1,0 +1,39 @@
+[project]
+name = "ecg-warehouse"
+version = "0.1.0"
+description = "ECG Warehouse"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "click>=8.3.2",
+    "duckdb>=1.5.2",
+    "icechunk>=2.2.2",
+    "joblib>=1.5.3",
+    "pandas>=3.0.2",
+    "pyarrow>=23.0.1",
+    "pyiceberg[sql-sqlite]>=0.11.1",
+    "python-dotenv>=1.2.4",
+    "tqdm>=4.67.3",
+    "wfdb>=4.3.1",
+    "zarr>=3.2.1",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.0",
+    "ipykernel"
+]
+
+[project.scripts]
+ecg-warehouse = "ecg_warehouse.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ecg_warehouse"]
+
+[tool.ruff]
+line-length = 120
+src = ["src"]

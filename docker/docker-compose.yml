@@ -1,0 +1,44 @@
+# Local S3-compatible storage (SeaweedFS) for testing the warehouse's S3 paths.
+#
+#   cp .env.example .env   # then fill in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+#   docker compose --env-file .env -f docker/docker-compose.yml up -d --wait
+#   uv run ecg-warehouse --config cfg/seaweedfs.json ...
+#
+# The S3 gateway's admin identity comes from .env, which ecg-warehouse loads too, so both sides share one set of keys.
+# Pass `--env-file .env` to every compose command, since compose looks for .env next to this file by default; without
+# the keys it refuses to run.
+# cfg/seaweedfs.json uses SeaweedFS's Iceberg REST catalog (port 8181), which keeps the tables in the ecg-tables table
+# bucket, and puts the signals store in ecg-warehouse-signals. The catalog lives in SeaweedFS too, separate from
+# data/catalog.db, so S3 signal URIs never mix with local ones. The config hard-codes the default ports; update it when
+# overriding S3_PORT.
+# The signals endpoint is an IP on purpose: for a host name the AWS SDK in Icechunk switches to virtual-hosted
+# addressing (<bucket>.localhost), which SeaweedFS answers as a bucket listing.
+# The S3 dataset store (`--s3-bucket`) has no endpoint setting, so it always goes to AWS.
+# `docker compose --env-file .env -f docker/docker-compose.yml down -v` drops the stored objects, catalog included.
+
+services:
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    # Master, volume, filer and S3 gateway in one process; the buckets are created on startup.
+    command: >-
+      mini -dir=/data -bucket=${S3_BUCKETS:-ecg-warehouse,ecg-warehouse-signals} -tableBucket=ecg-tables
+      -master.telemetry=false -webdav=false
+    environment:
+      # Admin identity of the S3 gateway; anonymous requests are rejected.
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?set it in .env and pass --env-file .env}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?set it in .env and pass --env-file .env}
+    ports:
+      - 8181:8181 # Iceberg REST catalog
+      - "${S3_PORT:-8333}:8333" # S3 API
+      - "${FILER_PORT:-8888}:8888" # filer web UI to browse the bucket
+    volumes:
+      - seaweedfs-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8333/healthz"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  seaweedfs-data:
